@@ -49,6 +49,8 @@ public partial class ListaProduto : ContentPage
         {
             string q = e.NewTextValue;
 
+            lst_produtos.IsRefreshing = true;
+
             lista.Clear();
 
             List<Produto> tmp = await App.Db.Search(q);
@@ -58,6 +60,9 @@ public partial class ListaProduto : ContentPage
         catch (Exception ex)
         {
             await DisplayAlert("Ops", ex.Message, "OK");
+        } finally
+        {
+            lst_produtos.IsRefreshing = false;
         }
     }
 
@@ -107,6 +112,65 @@ public partial class ListaProduto : ContentPage
         catch (Exception ex)
         {
             DisplayAlert("Ops", ex.Message, "OK");
+        }
+    }
+
+    private async void lst_produtos_Refreshing(object sender, EventArgs e)
+    {
+        try
+        {
+            lista.Clear();
+
+            List<Produto> tmp = await App.Db.GetAll();
+
+            tmp.ForEach(i => lista.Add(i));
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Ops", ex.Message, "OK");
+
+        } finally
+        {
+            lst_produtos.IsRefreshing = false;
+        }
+    }
+
+    private async void ToolbarItem_Clicked_2(object sender, EventArgs e)
+    {
+        {
+            try
+            {
+                
+                var categorias = await App.Db.GetAll();  
+                var categoriasDistintas = categorias
+                                          .Where(p => !string.IsNullOrWhiteSpace(p.Categoria)) 
+                                          .Select(p => p.Categoria)  
+                                          .Distinct()  
+                                          .ToList();
+
+                string categoriaSelecionada = await DisplayActionSheet(
+                    "Escolha uma categoria",
+                    "Cancelar", 
+                    null,       
+                    categoriasDistintas.ToArray());
+
+               
+                if (categoriaSelecionada != "Cancelar")
+                {
+                    
+                    var produtosPorCategoria = categorias.Where(p => p.Categoria == categoriaSelecionada).ToList();
+
+                    
+                    double totalCategoria = produtosPorCategoria.Sum(p => (double)(p.Quantidade * p.Preco));
+
+                    
+                    await DisplayAlert("Total Gasto", $"O total gasto na categoria {categoriaSelecionada} é {totalCategoria:C}", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Ops", ex.Message, "OK");
+            }
         }
     }
 }

@@ -24,5 +24,22 @@ namespace MauiAppMinhascompras.Models
         public double Quantidade { get; set; }
         public double Preco { get; set; }
         public double Total { get => Quantidade * Preco; }
+
+        string _categoria;
+        public string Categoria
+        {
+            get => _categoria;
+            set
+            {
+                if (value == null)
+                {
+                    throw new Exception("Por favor, preencha a categoria do produto");
+                }
+
+                _categoria = value;
+            }
+
+
+        }
     }
 }
